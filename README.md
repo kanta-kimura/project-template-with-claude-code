@@ -60,7 +60,8 @@
 │   │   │   ├── python.md       # Python規約
 │   │   │   ├── go.md           # Go規約
 │   │   │   ├── rust.md         # Rust規約
-│   │   │   └── java.md         # Java規約
+│   │   │   ├── java.md         # Java規約
+│   │   │   └── swift.md        # Swift規約
 │   │   │
 │   │   ├── terminology.md      # 用語集・命名規則
 │   │   ├── git-workflow.md     # Git運用ルール

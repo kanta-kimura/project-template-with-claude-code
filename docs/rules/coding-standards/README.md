@@ -35,6 +35,7 @@
 - [Go](./go.md)
 - [Rust](./rust.md)
 - [Java](./java.md)
+- [Swift](./swift.md)
 
 ## 命名規則
 
@@ -53,6 +54,7 @@
 | Go | camelCase | PascalCase | UPPER_SNAKE_CASE | snake_case |
 | Rust | snake_case | PascalCase | UPPER_SNAKE_CASE | snake_case |
 | Java | camelCase | PascalCase | UPPER_SNAKE_CASE | PascalCase |
+| Swift | lowerCamelCase | UpperCamelCase | lowerCamelCase | UpperCamelCase |
 
 ## コメント
 
