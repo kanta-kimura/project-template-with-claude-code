@@ -1,0 +1,112 @@
+name: バグレポート
+description: バグの報告
+title: "[Bug] "
+labels: ["bug", "status: backlog"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグを報告するためのテンプレートです。
+
+  - type: textarea
+    id: symptom
+    attributes:
+      label: 現象
+      description: 何が起きているかを簡潔に記載してください
+      placeholder: ログイン後、ページをリロードするとログアウトされる
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 再現手順
+      description: バグを再現する手順を記載してください
+      placeholder: |
+        1. ログイン画面でメールとパスワードを入力
+        2. ログインボタンをクリック
+        3. ダッシュボードに遷移
+        4. F5 でページをリロード
+        5. ログイン画面に戻される
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待される動作
+      description: 本来どう動作すべきか
+      placeholder: リロード後もログイン状態が維持される
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+      description: 実際に何が起きたか（エラーメッセージなども含む）
+      placeholder: |
+        ログイン画面にリダイレクトされる
+        コンソールエラー: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境
+      description: バグが発生した環境を記載してください
+      placeholder: |
+        - OS: macOS 14
+        - ブラウザ: Chrome 120
+        - バージョン: v1.2.3
+      value: |
+        - OS:
+        - ブラウザ:
+        - バージョン:
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      description: このバグの優先度を選択してください
+      options:
+        - Low（軽微な問題）
+        - Medium（通常の問題）
+        - High（重要な問題）
+        - Critical（緊急対応が必要）
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: スクリーンショット
+      description: 該当する場合、スクリーンショットを添付してください
+      placeholder: スクリーンショットをドラッグ&ドロップ
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ・エラーメッセージ
+      description: 関連するログやエラーメッセージがあれば記載してください
+      placeholder: |
+        ```
+        エラーメッセージをここに貼り付け
+        ```
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 追加情報
+      description: その他の関連情報があれば記載してください
+    validations:
+      required: false

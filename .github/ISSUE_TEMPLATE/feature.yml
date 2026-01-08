@@ -1,0 +1,115 @@
+name: 機能リクエスト
+description: 新機能の提案
+title: "[Feature] "
+labels: ["feature", "status: backlog"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        新機能の実装を提案するためのテンプレートです。
+
+  - type: input
+    id: epic
+    attributes:
+      label: Epic Issue
+      description: この機能が属する Epic Issue の番号（該当する場合）
+      placeholder: "#123"
+    validations:
+      required: false
+
+  - type: textarea
+    id: overview
+    attributes:
+      label: 概要
+      description: 機能の概要を簡潔に記載してください
+      placeholder: この機能は...
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景・目的
+      description: なぜこの機能が必要か、解決したい課題を記載してください
+      placeholder: |
+        - 現在の課題: ...
+        - 期待される効果: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: related
+    attributes:
+      label: 関連ドキュメント
+      description: 関連する仕様書や実装計画へのパスを記載してください
+      placeholder: |
+        - 仕様: `docs/specs/features/xxx.md`
+        - 実装計画: `.claude/plans/xxx.md`
+    validations:
+      required: false
+
+  - type: textarea
+    id: tasks
+    attributes:
+      label: 実装タスク
+      description: 実装に必要なタスクをリストアップしてください
+      placeholder: |
+        - [ ] タスク1
+        - [ ] タスク2
+        - [ ] タスク3
+      value: |
+        - [ ] 実装
+        - [ ] 単体テスト作成
+        - [ ] ドキュメント更新
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 依存関係
+      description: 依存する Issue や前提条件を記載してください
+      placeholder: |
+        - #456（先に完了が必要）
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      description: この機能の優先度を選択してください
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+      default: 1
+    validations:
+      required: true
+
+  - type: input
+    id: estimate
+    attributes:
+      label: 推定工数
+      description: 実装にかかる時間の見積もり
+      placeholder: "4時間"
+    validations:
+      required: false
+
+  - type: textarea
+    id: completion
+    attributes:
+      label: 完了条件
+      description: この Issue を完了とみなす条件
+      placeholder: |
+        - [ ] すべてのタスクが完了
+        - [ ] テストが成功
+        - [ ] レビュー承認
+      value: |
+        - [ ] 実装完了
+        - [ ] テスト成功
+        - [ ] コードレビュー承認
+        - [ ] ドキュメント更新
+    validations:
+      required: true

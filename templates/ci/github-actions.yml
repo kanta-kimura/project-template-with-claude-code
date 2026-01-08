@@ -1,0 +1,239 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ビルド・テストジョブ
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # 複数バージョンでテストする場合
+        # node-version: [18.x, 20.x]
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # 依存関係のインストール
+      - name: Install dependencies
+        run: npm ci
+
+      # リンター
+      - name: Run linter
+        run: npm run lint
+
+      # 型チェック（TypeScript の場合）
+      - name: Type check
+        run: npm run type-check
+
+      # テスト実行
+      - name: Run tests
+        run: npm test
+
+      # カバレッジ
+      - name: Generate coverage
+        run: npm run test:coverage
+
+      # カバレッジレポートのアップロード（Codecov を使う場合）
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+
+      # ビルド
+      - name: Build
+        run: npm run build
+
+      # セキュリティ監査
+      - name: Security audit
+        run: npm audit --audit-level=moderate
+
+  # E2E テストジョブ（必要な場合）
+  e2e:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload E2E test results
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: e2e-results
+          path: test-results/
+
+  # ステージング環境へのデプロイ（develop ブランチ）
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [test, e2e]
+
+    environment:
+      name: staging
+      url: https://staging.example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for staging
+        run: npm run build
+        env:
+          NODE_ENV: staging
+
+      # SSH デプロイ例
+      - name: Deploy to staging
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /var/www/app
+            git pull origin develop
+            npm install
+            npm run build
+            pm2 restart app
+
+  # 本番環境へのデプロイ（main ブランチ）
+  deploy-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: [test, e2e]
+
+    environment:
+      name: production
+      url: https://example.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for production
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      # Docker デプロイ例
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            user/app:latest
+            user/app:${{ github.sha }}
+          cache-from: type=registry,ref=user/app:latest
+          cache-to: type=inline
+
+      # Kubernetes デプロイ例
+      # - name: Deploy to Kubernetes
+      #   uses: azure/k8s-deploy@v4
+      #   with:
+      #     manifests: |
+      #       k8s/deployment.yaml
+      #       k8s/service.yaml
+      #     images: |
+      #       user/app:${{ github.sha }}
+
+  # 通知ジョブ
+  notify:
+    if: always()
+    runs-on: ubuntu-latest
+    needs: [test, deploy-staging, deploy-production]
+
+    steps:
+      # Slack 通知例
+      - name: Slack Notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Workflow: ${{ github.workflow }}
+            Status: ${{ job.status }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()
+
+# 言語別の設定例
+#
+# Python の場合:
+# - uses: actions/setup-python@v4
+#   with:
+#     python-version: '3.11'
+#     cache: 'pip'
+# - run: pip install -r requirements.txt
+# - run: pytest --cov=src tests/
+#
+# Go の場合:
+# - uses: actions/setup-go@v4
+#   with:
+#     go-version: '1.21'
+# - run: go mod download
+# - run: go test ./...
+# - run: go build
+#
+# Rust の場合:
+# - uses: actions-rs/toolchain@v1
+#   with:
+#     toolchain: stable
+# - run: cargo build --release
+# - run: cargo test

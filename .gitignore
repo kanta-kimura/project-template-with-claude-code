@@ -1,0 +1,220 @@
+# エディタ・IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 環境変数
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+
+# ログファイル
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# 一時ファイル
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# ======================
+# Node.js / JavaScript
+# ======================
+
+# 依存関係
+node_modules/
+jspm_packages/
+
+# ビルド出力
+dist/
+build/
+out/
+.next/
+.nuxt/
+.output/
+
+# テスト
+coverage/
+.nyc_output/
+
+# パッケージマネージャー
+.npm
+.yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# TypeScript
+*.tsbuildinfo
+
+# ======================
+# Python
+# ======================
+
+# バイトコンパイル
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 仮想環境
+venv/
+env/
+ENV/
+.venv/
+.python-version
+
+# ディストリビューション
+dist/
+build/
+*.egg-info/
+*.egg
+
+# テスト・カバレッジ
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ======================
+# Go
+# ======================
+
+# バイナリ
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# テスト
+*.test
+
+# ビルド
+bin/
+*.out
+
+# 依存関係（Go modules使用時は不要）
+vendor/
+
+# ======================
+# Rust
+# ======================
+
+# ビルド
+target/
+Cargo.lock
+
+# ======================
+# Java
+# ======================
+
+# コンパイル済みクラス
+*.class
+
+# パッケージ
+*.jar
+*.war
+*.ear
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ======================
+# データベース
+# ======================
+
+*.db
+*.sqlite
+*.sqlite3
+
+# ======================
+# Docker
+# ======================
+
+# Docker Compose
+docker-compose.override.yml
+
+# ======================
+# その他
+# ======================
+
+# バックアップ
+*.bak
+*.backup
+
+# 圧縮ファイル
+*.zip
+*.tar.gz
+*.rar
+
+# セキュリティ・機密情報
+*.pem
+*.key
+*.cert
+credentials.json
+secrets.json
+
+# ビルド成果物
+*.min.js
+*.min.css
+
+# テスト結果
+test-results/
+playwright-report/
+junit.xml
+
+# カバレッジレポート
+coverage.xml
+cobertura-coverage.xml
+
+# Claude Code（進捗ファイルは除外しない）
+# .claude/tasks/in-progress/ のファイルは Git で管理
+
+# 依存関係のロックファイル（プロジェクトに応じて調整）
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+# poetry.lock
+# Pipfile.lock
+# go.sum
+# Cargo.lock

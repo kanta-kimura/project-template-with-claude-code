@@ -1,0 +1,105 @@
+name: Epic
+description: 大きな機能単位の管理
+title: "[Epic] "
+labels: ["epic", "status: backlog"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        大きな機能をまとめて管理するための Epic Issue テンプレートです。
+
+  - type: textarea
+    id: overview
+    attributes:
+      label: 概要
+      description: この Epic の目的と概要を記載してください
+      placeholder: ユーザー認証機能を実装し、セキュアなログイン機能を提供する
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+      description: なぜこの Epic が必要か、ビジネス上の背景を記載してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: related-docs
+    attributes:
+      label: 関連ドキュメント
+      description: 関連する仕様書や実装計画を記載してください
+      placeholder: |
+        - 機能仕様: `docs/specs/features/user-authentication.md`
+        - 実装計画: `.claude/plans/user-authentication.md`
+        - ADR: `docs/adr/0002-jwt-authentication.md`
+    validations:
+      required: false
+
+  - type: textarea
+    id: child-issues
+    attributes:
+      label: 子 Issue
+      description: この Epic を構成する子 Issue をリストアップしてください
+      placeholder: |
+        - [ ] #123 データベーススキーマ設計
+        - [ ] #124 ユーザーモデル実装
+        - [ ] #125 認証API実装
+        - [ ] #126 認証ミドルウェア実装
+        - [ ] #127 ログイン画面実装
+      value: |
+        - [ ]
+    validations:
+      required: false
+
+  - type: textarea
+    id: milestones
+    attributes:
+      label: マイルストーン
+      description: この Epic の主要なマイルストーンを記載してください
+      placeholder: |
+        - Phase 1: バックエンド実装（Week 1-2）
+        - Phase 2: フロントエンド実装（Week 3）
+        - Phase 3: テスト・統合（Week 4）
+    validations:
+      required: false
+
+  - type: textarea
+    id: completion
+    attributes:
+      label: 完了条件
+      description: この Epic を完了とみなす条件を記載してください
+      placeholder: |
+        - [ ] すべての子 Issue が完了
+        - [ ] E2E テストが成功
+        - [ ] セキュリティレビュー完了
+        - [ ] ドキュメント完成
+      value: |
+        - [ ] すべての子 Issue が完了
+        - [ ] E2E テストが成功
+        - [ ] ドキュメント更新完了
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 優先度
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+      default: 2
+    validations:
+      required: true
+
+  - type: input
+    id: estimate
+    attributes:
+      label: 推定期間
+      description: この Epic の完了までの推定期間
+      placeholder: "2週間"
+    validations:
+      required: false
