@@ -1,0 +1,29 @@
+# Claude Code プロジェクト設定
+#
+# タスク管理モード:
+#   github: GitHub Issues 中心（推奨）
+#   local:  タスクファイル中心（GitHub なし環境用）
+
+task_management:
+  # モード選択: github | local
+  mode: local
+
+  # GitHub モード設定
+  github:
+    # Issue 作成時のデフォルトラベル
+    default_labels:
+      - "status: backlog"
+    # ステータスラベルの prefix
+    status_prefix: "status: "
+
+  # ローカルモード設定
+  local:
+    # タスクファイルの保存場所
+    tasks_dir: ".claude/tasks"
+    # ダッシュボード自動更新
+    auto_update_dashboard: true
+
+# インスタンス設定（並列開発用）
+instance:
+  # デフォルトのインスタンス名
+  default_name: "claude-1"
