@@ -276,3 +276,147 @@ git pull origin main
 - [ ] タスクファイルを `completed/` に移動した
 - [ ] GitHub Issue をクローズした
 - [ ] `.claude/dashboard.md` を更新した
+
+## 競合回避の仕組み
+
+### ダッシュボード更新の競合回避
+
+`update-dashboard.sh` はロックファイル（`.claude/.dashboard.lock`）を使用して競合を回避します。
+
+```bash
+# ロック取得の流れ
+1. ロックファイルの存在を確認
+2. 存在する場合は最大30秒待機
+3. ロック取得後、ダッシュボードを更新
+4. 完了後、ロックを解放
+```
+
+**ロックタイムアウト時の対処:**
+```bash
+# 他のプロセスが異常終了した場合、手動でロック解除
+rm .claude/.dashboard.lock
+```
+
+### タスクファイルの競合回避
+
+- **推奨:** `./scripts/move-task.sh` を使用（ロック機能内蔵）
+- 複数インスタンスが同じタスクを同時に移動しようとすると、最初のインスタンスが成功し、他は「既に移動済み」エラーになります
+
+### Git 競合の回避
+
+1. **タスク単位でブランチを分離**
+   ```bash
+   git checkout -b task/TASK-001-feature-name
+   ```
+
+2. **こまめなプッシュ**
+   ```bash
+   git push origin task/TASK-001-feature-name
+   ```
+
+3. **main へのマージ前に最新化**
+   ```bash
+   git fetch origin main
+   git rebase origin/main
+   ```
+
+## ロールバック手順
+
+### タスクステータスのロールバック
+
+```bash
+# review から in-progress に戻す
+./scripts/move-task.sh TASK-XXX in-progress claude-1
+
+# in-progress から backlog に戻す
+./scripts/move-task.sh TASK-XXX backlog
+```
+
+### GitHub Issue のロールバック
+
+```bash
+# クローズした Issue を再オープン
+gh issue reopen <issue-number>
+
+# ステータスラベルを戻す
+gh issue edit <issue-number> --add-label "status: review" --remove-label "status: completed"
+```
+
+### ダッシュボードのロールバック
+
+```bash
+# ダッシュボードを再生成（現在のタスク状況を反映）
+./scripts/update-dashboard.sh
+
+# Git から特定のバージョンに戻す
+git checkout HEAD~1 -- .claude/dashboard.md
+```
+
+### コミットのロールバック
+
+```bash
+# 直前のコミットを取り消し（変更は保持）
+git reset --soft HEAD~1
+
+# 直前のコミットを完全に取り消し
+git reset --hard HEAD~1
+
+# 特定のコミットを打ち消し
+git revert <commit-hash>
+```
+
+### フロー中断時の再開手順
+
+1. **現在の状態を確認**
+   ```bash
+   # タスクファイルの場所を確認
+   find .claude/tasks -name "TASK-XXX.md"
+
+   # Issue のステータスを確認
+   gh issue view <issue-number>
+
+   # ダッシュボードを確認
+   cat .claude/dashboard.md
+   ```
+
+2. **不整合の解消**
+   ```bash
+   # タスクファイルと Issue のステータスが一致しない場合
+   # → タスクファイルの場所に合わせて Issue を更新
+   ./scripts/update-issue-status.sh <issue-number> <current-status>
+
+   # ダッシュボードを再生成
+   ./scripts/update-dashboard.sh
+   ```
+
+3. **作業を再開**
+   ```bash
+   # 中断したタスクを続行
+   ./scripts/move-task.sh TASK-XXX in-progress claude-1
+   ```
+
+## 障害対応チェックリスト
+
+### ロックファイルが残っている
+```bash
+rm .claude/.dashboard.lock
+```
+
+### タスクファイルと Issue のステータスが不一致
+```bash
+# タスクファイルの場所を確認して Issue を更新
+./scripts/update-issue-status.sh <issue-number> <correct-status>
+```
+
+### ダッシュボードが古い
+```bash
+./scripts/update-dashboard.sh
+```
+
+### Git 競合が発生
+```bash
+git status
+# 競合ファイルを手動で解決
+git add <resolved-files>
+git rebase --continue
+```
