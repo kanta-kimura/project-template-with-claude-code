@@ -241,6 +241,38 @@ assignees: ''
 
 ## ワークフロー
 
+### 0. タスク → Issue 登録フロー
+
+ローカルでタスクファイルを作成した場合、GitHub Issue に登録して可視化します。
+
+#### gh CLI を使用した Issue 作成
+
+```bash
+# タスクファイルの内容を確認
+cat .claude/tasks/backlog/TASK-XXX.md
+
+# Issue を作成
+gh issue create \
+  --title "[Feature] タスクタイトル" \
+  --label "feature,status: backlog" \
+  --body "$(cat .claude/tasks/backlog/TASK-XXX.md)"
+
+# 作成された Issue 番号を確認
+gh issue list --limit 1
+```
+
+#### スクリプトを使用した Issue 作成
+
+```bash
+# タスクファイルから Issue を作成
+./scripts/create-issue-from-task.sh TASK-XXX
+
+# 処理内容:
+# 1. タスクファイルの内容を読み取り
+# 2. gh issue create で Issue を作成
+# 3. タスクファイルに Issue 番号を追記
+```
+
 ### 1. Issue 作成フロー
 
 #### ステップ1: Epic Issue 作成
@@ -377,6 +409,12 @@ mv .claude/tasks/backlog/TASK-123.md .claude/tasks/in-progress/claude-1/
 
 # 4. Issue のステータスを更新
 gh issue edit 123 --add-label "status: in-progress" --remove-label "status: backlog"
+
+# 5. ダッシュボードを更新
+# .claude/dashboard.md の以下を更新:
+# - 最終更新日時
+# - 全体サマリーの件数（未着手 -1、実装中 +1）
+# - 「実装中タスク」セクションにタスクを追加
 ```
 
 #### ステップ2: 実装
@@ -391,24 +429,39 @@ git commit -m "[feat] ユーザーモデルを実装
 Refs #123"
 ```
 
-#### ステップ4: レビュー
+#### ステップ4: レビュー依頼
 
 ```bash
-# タスクを review に移動
+# 1. タスクを review に移動
 mv .claude/tasks/in-progress/claude-1/TASK-123.md .claude/tasks/review/
 
-# Issue のステータスを更新
+# 2. Issue のステータスを更新
 gh issue edit 123 --add-label "status: review" --remove-label "status: in-progress"
+
+# 3. ダッシュボードを更新
+# .claude/dashboard.md の以下を更新:
+# - 最終更新日時
+# - 全体サマリーの件数（実装中 -1、レビュー中 +1）
+# - 「実装中タスク」セクションからタスクを削除
+# - 「レビュー待ちタスク」セクションにタスクを追加
 ```
 
 #### ステップ5: 完了
 
 ```bash
-# タスクを completed に移動
+# 1. タスクを completed に移動
 mv .claude/tasks/review/TASK-123.md .claude/tasks/completed/
 
-# Issue をクローズ
+# 2. Issue をクローズ
 gh issue close 123 --comment "実装完了。レビューも承認されました。"
+
+# 3. ダッシュボードを更新
+# .claude/dashboard.md の以下を更新:
+# - 最終更新日時
+# - 全体サマリーの件数（レビュー中 -1、完了 +1）
+# - 「レビュー待ちタスク」セクションからタスクを削除
+# - 「完了タスク」セクションにタスクを追加
+# - 進捗グラフを更新
 ```
 
 ### 4. プルリクエストとの連携
@@ -519,6 +572,20 @@ Fixes #456
 
 プロジェクトに以下のスクリプトを追加することを推奨します:
 
+### scripts/create-issue-from-task.sh
+
+タスクファイルから GitHub Issue を作成
+
+```bash
+# 使用例
+./scripts/create-issue-from-task.sh TASK-XXX
+
+# 処理内容:
+# 1. タスクファイルからタイトルと内容を読み取り
+# 2. gh issue create で Issue を作成
+# 3. タスクファイルに Issue 番号を追記
+```
+
 ### scripts/create-issues-from-plan.sh
 
 実装計画書から Issue を一括作成
@@ -531,9 +598,70 @@ Issue からタスクファイルを生成
 
 タスクの移動時に Issue のステータスを更新
 
+```bash
+# 使用例
+./scripts/update-issue-status.sh <issue-number> <new-status>
+
+# new-status: backlog, in-progress, review, completed
+```
+
 ### scripts/update-dashboard.sh
 
 Issue の状態から `.claude/dashboard.md` を更新
+
+## gh CLI コマンドリファレンス
+
+よく使用する gh CLI コマンドの一覧です。
+
+### Issue 操作
+
+```bash
+# Issue 一覧を表示
+gh issue list
+gh issue list --label "status: backlog"
+gh issue list --assignee @me
+
+# Issue を表示
+gh issue view <issue-number>
+
+# Issue を作成
+gh issue create --title "タイトル" --body "本文" --label "feature"
+
+# Issue を編集（ラベル追加・削除）
+gh issue edit <issue-number> --add-label "status: in-progress"
+gh issue edit <issue-number> --remove-label "status: backlog"
+
+# Issue をクローズ
+gh issue close <issue-number> --comment "完了コメント"
+
+# Issue にコメント
+gh issue comment <issue-number> --body "コメント内容"
+```
+
+### PR 操作
+
+```bash
+# PR を作成（Issue 自動クローズ）
+gh pr create --title "タイトル" --body "Closes #123"
+
+# PR 一覧を表示
+gh pr list
+
+# PR をマージ
+gh pr merge <pr-number>
+```
+
+### ラベル操作
+
+```bash
+# ラベル一覧を表示
+gh label list
+
+# ラベルを作成
+gh label create "status: backlog" --color "d4c5f9" --description "未着手"
+```
+
+詳細は [GitHub CLI マニュアル](https://cli.github.com/manual/) を参照してください。
 
 ## トラブルシューティング
 

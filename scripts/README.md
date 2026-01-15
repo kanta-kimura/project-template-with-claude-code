@@ -1,8 +1,38 @@
 # スクリプト集
 
 プロジェクト管理を効率化するためのスクリプト集です。
+すべてのスクリプトは GitHub CLI (`gh`) を使用します。
 
 ## GitHub Issue 連携スクリプト
+
+### create-issue-from-task.sh
+
+タスクファイルから GitHub Issue を作成します。
+
+**使い方:**
+```bash
+./scripts/create-issue-from-task.sh <task-id>
+```
+
+**例:**
+```bash
+# タスクファイルから Issue を作成
+./scripts/create-issue-from-task.sh TASK-001
+
+# 処理内容:
+# 1. .claude/tasks/backlog/TASK-001.md を読み取り
+# 2. gh issue create で Issue を作成
+# 3. タスクファイルに Issue 番号を追記
+```
+
+**gh CLI コマンド例:**
+```bash
+# 手動で Issue を作成する場合
+gh issue create \
+  --title "[Feature] タスクタイトル" \
+  --label "feature,status: backlog" \
+  --body "$(cat .claude/tasks/backlog/TASK-001.md)"
+```
 
 ### sync-issue-to-task.sh
 
@@ -26,6 +56,12 @@ GitHub Issue からタスクファイルを生成します。
 1. GitHub Issue の情報を取得（gh CLI を使用）
 2. `.claude/tasks/backlog/TASK-{number}.md` を生成
 3. Issue の内容をタスクファイルに変換
+
+**gh CLI コマンド例:**
+```bash
+# Issue の情報を取得
+gh issue view 123 --json number,title,body,labels
+```
 
 ### update-issue-status.sh
 
@@ -60,16 +96,28 @@ GitHub Issue のステータスラベルを更新します。
 2. 新しい `status:` ラベルを追加
 3. ステータス変更をコメントで通知
 
+**gh CLI コマンド例:**
+```bash
+# ラベルを変更
+gh issue edit 123 --add-label "status: in-progress" --remove-label "status: backlog"
+
+# Issue をクローズ
+gh issue close 123 --comment "実装完了"
+```
+
 ## 使用例：完全なワークフロー
 
-### 1. Issue を取得してタスク化
+### 1. タスク作成 → Issue 登録
 
 ```bash
-# 未着手の Issue 一覧を表示
-gh issue list --label "status: backlog"
+# タスクファイルを作成後、GitHub Issue に登録
+./scripts/create-issue-from-task.sh TASK-001
 
-# Issue #123 をタスクファイルに変換
+# または Issue から始める場合
+gh issue list --label "status: backlog"
 ./scripts/sync-issue-to-task.sh 123
+
+# ダッシュボード更新: Backlog セクションにタスクを追加
 ```
 
 ### 2. タスクを開始
@@ -80,11 +128,18 @@ mv .claude/tasks/backlog/TASK-123.md .claude/tasks/in-progress/claude-1/
 
 # Issue のステータスを更新
 ./scripts/update-issue-status.sh 123 in-progress
+# または: gh issue edit 123 --add-label "status: in-progress" --remove-label "status: backlog"
+
+# ダッシュボード更新:
+# - 最終更新日時を更新
+# - 全体サマリー: 未着手 -1、実装中 +1
+# - Backlog から削除、実装中タスクに追加
 ```
 
 ### 3. 実装
 
 通常の実装フローに従って実装します。
+コミット時は Issue を参照: `git commit -m "[feat] 機能実装 Refs #123"`
 
 ### 4. レビュー依頼
 
@@ -94,9 +149,15 @@ mv .claude/tasks/in-progress/claude-1/TASK-123.md .claude/tasks/review/
 
 # Issue のステータスを更新
 ./scripts/update-issue-status.sh 123 review
+# または: gh issue edit 123 --add-label "status: review" --remove-label "status: in-progress"
 
 # PR を作成（Issue を自動クローズ）
 gh pr create --title "ユーザーモデルを実装" --body "Closes #123"
+
+# ダッシュボード更新:
+# - 最終更新日時を更新
+# - 全体サマリー: 実装中 -1、レビュー中 +1
+# - 実装中タスクから削除、レビュー待ちタスクに追加
 ```
 
 ### 5. 完了
@@ -107,6 +168,12 @@ mv .claude/tasks/review/TASK-123.md .claude/tasks/completed/
 
 # Issue をクローズ
 gh issue close 123 --comment "実装完了。レビュー承認されました。"
+
+# ダッシュボード更新:
+# - 最終更新日時を更新
+# - 全体サマリー: レビュー中 -1、完了 +1
+# - レビュー待ちタスクから削除、完了タスクに追加
+# - 進捗グラフを更新
 ```
 
 ## 前提条件

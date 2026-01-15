@@ -98,17 +98,42 @@
 ### 2. 実装計画立案
 仕様書を基に `.claude/plans/` に実装計画を作成します。
 
-### 3. タスク細分化
+### 3. タスク細分化 & GitHub Issue 登録
 実装計画を細分化し、並列実行可能な単位に分割します。
-分割されたタスクは `.claude/tasks/backlog/` に配置します。
+分割されたタスクは `.claude/tasks/backlog/` に配置し、**GitHub Issue に登録**します。
+
+```bash
+# タスクファイルから Issue を作成
+./scripts/create-issue-from-task.sh TASK-XXX
+# または: gh issue create --title "タイトル" --label "feature,status: backlog" --body "内容"
+```
 
 ### 4. 並列実装
 複数の Claude Code インスタンスが `backlog` からタスクを取得し、
 `in-progress/[instance-name]/` で並列実装します。
 
+**各フローで必須:**
+- タスクファイルの移動
+- GitHub Issue のステータス更新（`gh issue edit`）
+- `.claude/dashboard.md` の更新
+
+```bash
+# タスク開始時
+mv .claude/tasks/backlog/TASK-XXX.md .claude/tasks/in-progress/[instance-name]/
+gh issue edit <number> --add-label "status: in-progress" --remove-label "status: backlog"
+# dashboard.md を更新
+```
+
 ### 5. レビュー
 実装完了後、`.claude/tasks/review/` に移動し、
 別の Claude Code インスタンスが自動レビューを実行します。
+
+```bash
+# レビュー依頼時
+mv .claude/tasks/in-progress/[instance-name]/TASK-XXX.md .claude/tasks/review/
+gh issue edit <number> --add-label "status: review" --remove-label "status: in-progress"
+# dashboard.md を更新
+```
 
 ### 6. 修正対応
 レビュー指摘事項を自動で修正し、再レビューまで実施します。
@@ -116,24 +141,36 @@
 ### 7. 完了
 すべてのレビューが承認されたタスクは `.claude/tasks/completed/` に移動します。
 
+```bash
+# 完了時
+mv .claude/tasks/review/TASK-XXX.md .claude/tasks/completed/
+gh issue close <number> --comment "実装完了"
+# dashboard.md を更新
+```
+
 ## GitHub Issue 統合ワークフロー
 
 GitHub Issue をタスク管理の中心として活用できます。
+**すべての GitHub 操作は GitHub CLI (`gh`) を使用します。**
 
 ### Issue ベースの実装フロー
 
 ```
-[GitHub Issue作成] ← チーム全体に可視化
+[タスクファイル作成 or GitHub Issue作成] ← チーム全体に可視化
     ↓
-[gh コマンドでIssue取得]
+[gh コマンドで Issue 登録/取得]
     ↓
-[スクリプトでタスクファイル生成]
+[タスクファイルと Issue を同期]
     ↓
 [.claude/tasks/backlog/に配置]
     ↓
-[通常の並列開発フロー]
+[タスク開始: backlog → in-progress + Issue ステータス更新 + dashboard.md 更新]
     ↓
-[PR作成 & Issueクローズ]
+[実装 & コミット (Issue 参照)]
+    ↓
+[レビュー依頼: in-progress → review + Issue ステータス更新 + dashboard.md 更新]
+    ↓
+[完了: review → completed + Issue クローズ + dashboard.md 更新]
 ```
 
 ### 基本的な使い方
@@ -153,7 +190,17 @@ gh auth login
 chmod +x scripts/*.sh
 ```
 
-#### 2. Issue からタスクを生成
+#### 2. タスク → Issue 登録
+
+```bash
+# タスクファイルから GitHub Issue を作成
+./scripts/create-issue-from-task.sh TASK-001
+
+# または直接 gh コマンドで作成
+gh issue create --title "[Feature] タイトル" --label "feature,status: backlog" --body "内容"
+```
+
+#### 3. Issue → タスク生成
 
 ```bash
 # 未着手の Issue 一覧を表示
@@ -165,7 +212,7 @@ gh issue list --label "status: backlog"
 # 生成されたタスクファイル: .claude/tasks/backlog/TASK-123.md
 ```
 
-#### 3. タスクを開始
+#### 4. タスクを開始
 
 ```bash
 # タスクを in-progress に移動
@@ -173,9 +220,12 @@ mv .claude/tasks/backlog/TASK-123.md .claude/tasks/in-progress/claude-1/
 
 # Issue のステータスを更新
 ./scripts/update-issue-status.sh 123 in-progress
+# または: gh issue edit 123 --add-label "status: in-progress" --remove-label "status: backlog"
+
+# .claude/dashboard.md を更新（必須）
 ```
 
-#### 4. 実装 & コミット
+#### 5. 実装 & コミット
 
 ```bash
 # 実装後、Issue を参照してコミット
@@ -184,11 +234,13 @@ git commit -m "[feat] ユーザーモデルを実装
 Refs #123"
 ```
 
-#### 5. PR作成 & Issueクローズ
+#### 6. PR作成 & Issueクローズ
 
 ```bash
 # PR を作成（Issue を自動クローズ）
 gh pr create --title "ユーザーモデルを実装" --body "Closes #123"
+
+# .claude/dashboard.md を更新（必須）
 ```
 
 詳細は `.claude/workflows/github-issue-integration.md` を参照してください。
